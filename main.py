@@ -55,7 +55,7 @@ def Receive():
     main.title("Send")
     main.geometry('450x560+500+200')
     main.resizable(False,False)
-    
+
     def receiver():
         ID=SenderID.get()
         filename1=incomingFile.get()
@@ -67,7 +67,7 @@ def Receive():
         file_data = s.recv(1024)
         file.write(file_data)
         file.close()
-        print("File has been received succesfully...")
+        print("Files has been received succesfully...")
     
     #icon
     image_icon1= PhotoImage(file = "Images/receive.png")
