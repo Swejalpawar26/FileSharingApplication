@@ -3,12 +3,50 @@ import socket
 from tkinter import filedialog
 from tkinter import messagebox
 import os
+import mysql.connector
 
 root = Tk()
 root.title("ShareMe")
 root.geometry("450x560+500+200")
 root.configure(bg="#f4fdfe")
 root.resizable(False,False)
+# Function to save the filename to the MySQL database
+def save_to_database(filename):
+    try:
+        mydb = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="Swep@26",
+            database="AnushkaDatabase"
+        )
+        mycursor = mydb.cursor()
+        sql = "INSERT INTO fileinfo(filename) VALUES (%s)"
+        val = (filename,)
+        mycursor.execute(sql, val)
+        mydb.commit()
+        mycursor.close()
+        mydb.close()
+    except Exception as e:
+        messagebox.showerror("Error", f"An error occurred: {e}")
+
+# Function to retrieve filenames from the MySQL database
+def get_files_from_database():
+    try:
+        mydb = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="Swep@26",
+            database="AnushkaDatabase"
+        )
+        mycursor = mydb.cursor()
+        mycursor.execute("SELECT filename FROM fileinfo")
+        files = mycursor.fetchall()
+        mycursor.close()
+        mydb.close()
+        return files
+    except Exception as e:
+        messagebox.showerror("Error", f"An error occurred: {e}")
+        return []
 
 def Send():
     window=Toplevel(root)
@@ -19,7 +57,7 @@ def Send():
     def select_file():
         global filename
         filename=filedialog.askopenfilename(initialdir=os.getcwd(),title="Select Image File",
-                                            filetype=(('file_type','*.txt'),('all files','*.*')))
+                                            filetype=(('file_type','.txt'),('all files','.*')))
         
     def sender():
         s=socket.socket()
@@ -34,6 +72,10 @@ def Send():
         file_data=file.read(1024)
         conn.send(file_data)
         print("Data has been transmitted successfully....")
+        save_to_database(os.path.basename(filename))
+        conn.close()
+        s.close()
+        
     #icon
     image_icon1= PhotoImage(file = "Images/send.png")
     window.iconphoto(False,image_icon1)
@@ -111,6 +153,8 @@ send.place(x=60 ,y=100)
 receiveImage = PhotoImage (file = "Images/receive.png")
 receive = Button(root , image = receiveImage ,bg="#f4fdfe",bd = 0,command=Receive)
 receive.place(x=300 ,y=100)
+
+Button(root,text="Show Files",width=10,height=1,font="arial 14 bold",bg="#fff",fg = "#000" ,command=get_files_from_database).place(x=150,y=270)
 
 #label 
 Label(root,text ="Send", font=('acumin Variable Concept' , 17 ,'bold'),bg="#f4fdfe").place(x = 70 , y = 200)
